@@ -399,6 +399,16 @@ function NexusUI:CreateWindow(opts)
                 return
             end
         end
+
+        if inp.Target then
+            if _activePopup.trigger and inp.Target:IsDescendantOf(_activePopup.trigger) then
+                return
+            end
+            if _activePopup.frame and inp.Target:IsDescendantOf(_activePopup.frame) then
+                return
+            end
+        end
+
         local f  = _activePopup.frame
         local fp = f.AbsolutePosition
         local fs = f.AbsoluteSize
@@ -2417,14 +2427,17 @@ function NexusUI:CreateWindow(opts)
             local _msPopupW   = 0
             local _msLastTime = 0
             local _MS_CD      = 0.1
+            local _msBusy     = false
 
             local function CloseMPS()
                 if open then
                     open = false
+                    _msBusy = true
                     local pw = math.max(8, _msPopupW)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.15)
                     task.delay(0.16, function()
                         if not open then pcall(function() popup.Visible = false end) end
+                        _msBusy = false
                     end)
                 end
             end
@@ -2433,22 +2446,24 @@ function NexusUI:CreateWindow(opts)
                 local now = os.clock()
                 if now - _msLastTime < _MS_CD then return end
                 _msLastTime = now
+                if _msBusy then return end
 
                 if open then
-                    -- CLOSE
                     open = false
                     _activePopup = nil
+                    _msBusy = true
                     local pw = math.max(8, _msPopupW)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.15)
                     task.delay(0.16, function()
                         if not open then pcall(function() popup.Visible = false end) end
+                        _msBusy = false
                     end)
                 else
-                    -- OPEN — close any OTHER active popup (never ourselves)
                     if _activePopup and _activePopup.frame ~= popup and _activePopup.close then
                         pcall(_activePopup.close)
                     end
                     open = true
+                    _msBusy = true
                     RefreshList()
                     local ap  = msBtn.AbsolutePosition
                     local as  = msBtn.AbsoluteSize
@@ -2483,6 +2498,7 @@ function NexusUI:CreateWindow(opts)
                     _activePopup   = { close = CloseMPS, frame = popup, trigger = msBtn }
                     _RegisterPopup(CloseMPS, popup, msBtn)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.2)
+                    task.delay(0.2, function() _msBusy = false end)
                 end
             end)
 
