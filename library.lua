@@ -13,10 +13,10 @@
 
     USAGE EXAMPLE:
 
-        local Nexus = loadstring(game:HttpGet("https://raw.githubusercontent.com/mumya1god/nexus/library.lua"))()
+        local Nexus = loadstring(game:HttpGet("https://raw.githubusercontent.com/mumya1god/nexus/refs/heads/main/library.lua"))()
 
         local Window = Nexus:CreateWindow({
-            Title    = "MY SCRIPT USING NEXUS",
+            Title    = "My Script",
             SubTitle = "v1.0",
             Theme    = "DarkNavy",
         })
@@ -531,6 +531,19 @@ function NexusUI:CreateWindow(opts)
     end
 
     toggleBtn.MouseButton1Click:Connect(HideMain)
+
+    local _menuToggleKey = Enum.KeyCode.RightShift
+    UserInputService.InputBegan:Connect(function(inp, gpe)
+        if gpe then return end
+        if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+        if inp.KeyCode == _menuToggleKey then
+            if mainOpen then
+                HideMain()
+            else
+                ShowMain()
+            end
+        end
+    end)
 
     closeBtn.MouseButton1Click:Connect(function()
         for _, resetFn in ipairs(Window._toggleResets) do
@@ -2077,6 +2090,210 @@ function NexusUI:CreateWindow(opts)
             return ctrl
         end
 
+        function Tab:CreateTextDisplay(opts)
+            opts = opts or {}
+            local name    = opts.Name    or "Text Display"
+            local desc    = opts.Desc    or ""
+            local text    = opts.Text    or ""
+            local copying = opts.Copying ~= nil and opts.Copying or false
+
+            local LINE_H  = 20
+            local HEADER_H = 32
+            local MAX_DISPLAY_H = 180
+            local NUM_W = 34
+
+            local container = Create("Frame", {
+                BackgroundColor3 = T.Surface,
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(1, 0, 0, HEADER_H + MAX_DISPLAY_H),
+                ClipsDescendants = false,
+                Parent           = scrollFrame,
+            })
+            Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = container })
+            Create("UIStroke",  { Color = Color3.fromRGB(14, 16, 26), Thickness = 1, Parent = container })
+
+            local header = Create("Frame", {
+                BackgroundColor3 = T.SurfaceAlt,
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(1, 0, 0, HEADER_H),
+                ClipsDescendants = true,
+                Parent           = container,
+            })
+            Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = header })
+            Create("Frame", {
+                BackgroundColor3 = T.SurfaceAlt,
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(1, 0, 0, 8),
+                Position         = UDim2.new(0, 0, 1, -8),
+                Parent           = header,
+            })
+
+            Create("TextLabel", {
+                BackgroundTransparency = 1,
+                Size             = UDim2.new(1, -90, 1, 0),
+                Position         = UDim2.new(0, 12, 0, 0),
+                Text             = name,
+                TextColor3       = Color3.fromRGB(200, 208, 240),
+                TextSize         = 12,
+                Font             = Enum.Font.GothamSemibold,
+                TextXAlignment   = Enum.TextXAlignment.Left,
+                Parent           = header,
+            })
+
+            local copyBtn = Create("TextButton", {
+                BackgroundColor3 = T.Accent,
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(0, 66, 0, 22),
+                Position         = UDim2.new(1, -74, 0.5, -11),
+                Text             = "Copy",
+                TextColor3       = Color3.fromRGB(255, 255, 255),
+                TextSize         = 11,
+                Font             = Enum.Font.GothamBold,
+                Visible          = copying,
+                Parent           = header,
+            })
+            Create("UICorner", { CornerRadius = UDim.new(0, 5), Parent = copyBtn })
+
+            copyBtn.MouseEnter:Connect(function()
+                Tween(copyBtn, { BackgroundColor3 = T.AccentHover }, 0.1)
+            end)
+            copyBtn.MouseLeave:Connect(function()
+                Tween(copyBtn, { BackgroundColor3 = T.Accent }, 0.1)
+            end)
+
+            Create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(14, 15, 24),
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(1, 0, 0, 1),
+                Position         = UDim2.new(0, 0, 1, -1),
+                Parent           = header,
+            })
+
+            local lineNumCol = Create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(6, 7, 11),
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(0, NUM_W, 1, -HEADER_H),
+                Position         = UDim2.new(0, 0, 0, HEADER_H),
+                ClipsDescendants = true,
+                Parent           = container,
+            })
+            Create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(18, 20, 32),
+                BorderSizePixel  = 0,
+                Size             = UDim2.new(0, 1, 1, 0),
+                Position         = UDim2.new(1, -1, 0, 0),
+                Parent           = lineNumCol,
+            })
+
+            local lineNumScroll = Create("ScrollingFrame", {
+                BackgroundTransparency = 1,
+                BorderSizePixel        = 0,
+                Size                   = UDim2.new(1, 0, 1, 0),
+                CanvasSize             = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize    = Enum.AutomaticSize.Y,
+                ScrollBarThickness     = 0,
+                ScrollingEnabled       = false,
+                Parent                 = lineNumCol,
+            })
+            Create("UIListLayout", {
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent    = lineNumScroll,
+            })
+
+            local textScroll = Create("ScrollingFrame", {
+                BackgroundTransparency = 1,
+                BorderSizePixel        = 0,
+                Size                   = UDim2.new(1, -NUM_W, 1, -HEADER_H),
+                Position               = UDim2.new(0, NUM_W, 0, HEADER_H),
+                CanvasSize             = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize    = Enum.AutomaticSize.Y,
+                ScrollBarThickness     = 3,
+                ScrollBarImageColor3   = T.Scrollbar,
+                Parent                 = container,
+            })
+            Create("UIListLayout", {
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding   = UDim.new(0, 0),
+                Parent    = textScroll,
+            })
+            Create("UIPadding", {
+                PaddingLeft   = UDim.new(0, 8),
+                PaddingRight  = UDim.new(0, 8),
+                PaddingTop    = UDim.new(0, 4),
+                PaddingBottom = UDim.new(0, 4),
+                Parent        = textScroll,
+            })
+
+            textScroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+                lineNumScroll.CanvasPosition = Vector2.new(0, textScroll.CanvasPosition.Y)
+            end)
+
+            local currentLineLabels = {}
+            local currentNumLabels  = {}
+
+            local function RenderLines(t)
+                for _, v in ipairs(currentLineLabels) do pcall(function() v:Destroy() end) end
+                for _, v in ipairs(currentNumLabels)  do pcall(function() v:Destroy() end) end
+                currentLineLabels = {}
+                currentNumLabels  = {}
+
+                local lines = t ~= "" and t:split("\n") or {""}
+                for i, line in ipairs(lines) do
+                    local numLbl = Create("TextLabel", {
+                        BackgroundTransparency = 1,
+                        Size             = UDim2.new(1, 0, 0, LINE_H),
+                        Text             = tostring(i),
+                        TextColor3       = Color3.fromRGB(55, 65, 110),
+                        TextSize         = 10,
+                        Font             = Enum.Font.GothamBold,
+                        TextXAlignment   = Enum.TextXAlignment.Center,
+                        TextYAlignment   = Enum.TextYAlignment.Center,
+                        LayoutOrder      = i,
+                        Parent           = lineNumScroll,
+                    })
+                    table.insert(currentNumLabels, numLbl)
+
+                    local textLbl = Create("TextLabel", {
+                        BackgroundTransparency = 1,
+                        Size             = UDim2.new(1, 0, 0, LINE_H),
+                        Text             = line,
+                        TextColor3       = T.TextPrimary,
+                        TextSize         = 11,
+                        Font             = Enum.Font.Code,
+                        TextXAlignment   = Enum.TextXAlignment.Left,
+                        TextYAlignment   = Enum.TextYAlignment.Center,
+                        TextWrapped      = false,
+                        TextTruncate     = Enum.TextTruncate.AtEnd,
+                        LayoutOrder      = i,
+                        Parent           = textScroll,
+                    })
+                    table.insert(currentLineLabels, textLbl)
+                end
+            end
+
+            RenderLines(text)
+
+            copyBtn.MouseButton1Click:Connect(function()
+                if setclipboard then
+                    pcall(function() setclipboard(text) end)
+                end
+                NexusUI:Notify({ Title = "Copied!", Message = "Text copied to clipboard.", Type = "Success" })
+            end)
+
+            local ctrl = {}
+            function ctrl:SetText(t)
+                text = t or ""
+                RenderLines(text)
+            end
+            function ctrl:GetText() return text end
+            function ctrl:SetCopying(val)
+                copying = val
+                copyBtn.Visible = val
+            end
+            function ctrl:GetCopying() return copying end
+            return ctrl
+        end
+
         return Tab
     end
 
@@ -2123,12 +2340,8 @@ function NexusUI:CreateWindow(opts)
             Name     = "Toggle Menu",
             Desc     = "Press to show / hide the menu",
             Default  = Enum.KeyCode.RightShift,
-            Callback = function()
-                if mainOpen then
-                    HideMain()
-                else
-                    ShowMain()
-                end
+            Callback = function(key)
+                _menuToggleKey = key
             end,
         })
         tab:CreateSeparator()
@@ -2162,7 +2375,8 @@ function NexusUI:CreateWindow(opts)
     function Window:CreateColorPicker(o)   return self._defaultTab:CreateColorPicker(o) end
     function Window:CreateInput(o)         return self._defaultTab:CreateInput(o) end
     function Window:CreateKeybind(o)       return self._defaultTab:CreateKeybind(o) end
-    function Window:CreatePlayerSelector(o) return self._defaultTab:CreatePlayerSelector(o) end
+    function Window:CreatePlayerSelector(o)  return self._defaultTab:CreatePlayerSelector(o) end
+    function Window:CreateTextDisplay(o)     return self._defaultTab:CreateTextDisplay(o) end
 
     function Window:Notify(opts)
         NexusUI:Notify(opts)
