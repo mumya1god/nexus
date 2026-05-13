@@ -370,11 +370,11 @@ function NexusUI:CreateWindow(opts)
 
     local _activePopup = nil
 
-    local function _RegisterPopup(closeFunc, popupFrame)
+    local function _RegisterPopup(closeFunc, popupFrame, triggerBtn)
         if _activePopup and _activePopup.close then
             pcall(_activePopup.close)
         end
-        _activePopup = { close = closeFunc, frame = popupFrame }
+        _activePopup = { close = closeFunc, frame = popupFrame, trigger = triggerBtn }
     end
 
     local function _CloseActivePopup()
@@ -388,8 +388,18 @@ function NexusUI:CreateWindow(opts)
         if not _windowActive then return end
         if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if not _activePopup or not _activePopup.frame then return end
-        local f  = _activePopup.frame
         local mp = inp.Position
+        -- If click is on the trigger button, let the button's MouseButton1Click handle it
+        local tb = _activePopup.trigger
+        if tb then
+            local tp = tb.AbsolutePosition
+            local ts = tb.AbsoluteSize
+            if mp.X >= tp.X and mp.X <= tp.X + ts.X and
+               mp.Y >= tp.Y and mp.Y <= tp.Y + ts.Y then
+                return
+            end
+        end
+        local f  = _activePopup.frame
         local fp = f.AbsolutePosition
         local fs = f.AbsoluteSize
         if mp.X < fp.X or mp.X > fp.X + fs.X or
@@ -1379,20 +1389,28 @@ function NexusUI:CreateWindow(opts)
                 end)
             end
 
+            local _ddBusy = false
             ddBtn.MouseButton1Click:Connect(function()
+                if _ddBusy then return end
                 open = not open
                 if open then
-                    _RegisterPopup(CloseDropdown, dropdown)
+                    _ddBusy = true
+                    _RegisterPopup(CloseDropdown, dropdown, ddBtn)
                     local ap = ddBtn.AbsolutePosition
                     local as = ddBtn.AbsoluteSize
                     dropdown.Position = UDim2.new(0, ap.X, 0, ap.Y + as.Y + 4)
                     dropdown.Visible = true
                     local h = math.min(#items * 28, 140)
                     Tween(dropdown, { Size = UDim2.new(0, 148, 0, h) }, 0.18)
+                    task.delay(0.18, function() _ddBusy = false end)
                 else
+                    _ddBusy = true
                     _activePopup = nil
                     Tween(dropdown, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
-                    task.delay(0.13, function() pcall(function() dropdown.Visible = false end) end)
+                    task.delay(0.13, function()
+                        if not open then pcall(function() dropdown.Visible = false end) end
+                        _ddBusy = false
+                    end)
                 end
             end)
 
@@ -1934,7 +1952,7 @@ function NexusUI:CreateWindow(opts)
             local popup = Create("Frame", {
                 BackgroundColor3 = T.Surface,
                 BorderSizePixel  = 0,
-                Size             = UDim2.new(0, 220, 0, 0),
+                Size             = UDim2.new(0, 148, 0, 0),
                 Position         = UDim2.new(0, 0, 0, 0),
                 ClipsDescendants = true,
                 ZIndex           = 200,
@@ -1974,9 +1992,9 @@ function NexusUI:CreateWindow(opts)
             local function ClosePlayerSelector()
                 if open then
                     open = false
-                    Tween(popup, { Size = UDim2.new(0, 220, 0, 0) }, 0.12)
+                    Tween(popup, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
-                        pcall(function() popup.Visible = false end)
+                        if not open then pcall(function() popup.Visible = false end) end
                     end)
                 end
             end
@@ -2078,23 +2096,33 @@ function NexusUI:CreateWindow(opts)
                 end
             end
 
+            local _psBusy = false
             psBtn.MouseButton1Click:Connect(function()
+                if _psBusy then return end
                 open = not open
                 if open then
+                    _psBusy = true
                     RefreshList()
-                    _RegisterPopup(ClosePlayerSelector, popup)
-                    local ap = psBtn.AbsolutePosition
-                    local as = psBtn.AbsoluteSize
-                    popup.Position = UDim2.new(0, ap.X, 0, ap.Y + as.Y + 4)
+                    _RegisterPopup(ClosePlayerSelector, popup, psBtn)
+                    local ap  = psBtn.AbsolutePosition
+                    local as  = psBtn.AbsoluteSize
+                    local pw  = 148
+                    local mp  = main.AbsolutePosition
+                    local ms  = main.AbsoluteSize
+                    local px  = math.clamp(ap.X, mp.X, mp.X + ms.X - pw)
+                    popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
                     popup.Visible  = true
                     local count = math.max(1, #Players:GetPlayers())
                     local h = math.min(count * 44, 200)
-                    Tween(popup, { Size = UDim2.new(0, 220, 0, h) }, 0.18)
+                    Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
+                    task.delay(0.18, function() _psBusy = false end)
                 else
+                    _psBusy = true
                     _activePopup = nil
-                    Tween(popup, { Size = UDim2.new(0, 220, 0, 0) }, 0.12)
+                    Tween(popup, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
-                        pcall(function() popup.Visible = false end)
+                        if not open then pcall(function() popup.Visible = false end) end
+                        _psBusy = false
                     end)
                 end
             end)
@@ -2177,7 +2205,7 @@ function NexusUI:CreateWindow(opts)
             local popup = Create("Frame", {
                 BackgroundColor3 = T.Surface,
                 BorderSizePixel  = 0,
-                Size             = UDim2.new(0, 440, 0, 0),
+                Size             = UDim2.new(0, 0, 0, 0),
                 Position         = UDim2.new(0, 0, 0, 0),
                 ClipsDescendants = true,
                 ZIndex           = 200,
@@ -2372,30 +2400,42 @@ function NexusUI:CreateWindow(opts)
             local function CloseMPS()
                 if open then
                     open = false
-                    Tween(popup, { Size = UDim2.new(0, 440, 0, 0) }, 0.12)
+                    local pw = popup.AbsoluteSize.X
+                    Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
-                        pcall(function() popup.Visible = false end)
+                        if not open then pcall(function() popup.Visible = false end) end
                     end)
                 end
             end
 
+            local _msBusy = false
             msBtn.MouseButton1Click:Connect(function()
+                if _msBusy then return end
                 open = not open
                 if open then
+                    _msBusy = true
                     RefreshList()
-                    _RegisterPopup(CloseMPS, popup)
-                    local ap = msBtn.AbsolutePosition
-                    local as = msBtn.AbsoluteSize
-                    popup.Position = UDim2.new(0, ap.X, 0, ap.Y + as.Y + 4)
+                    _RegisterPopup(CloseMPS, popup, msBtn)
+                    local ap  = msBtn.AbsolutePosition
+                    local as  = msBtn.AbsoluteSize
+                    local mp  = main.AbsolutePosition
+                    local ms  = main.AbsoluteSize
+                    local pw  = ms.X - 16
+                    local px  = mp.X + 8
+                    popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
                     popup.Visible  = true
                     local count = math.max(1, #Players:GetPlayers())
                     local h = math.min(count * 44, 200)
-                    Tween(popup, { Size = UDim2.new(0, 440, 0, h) }, 0.18)
+                    Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
+                    task.delay(0.18, function() _msBusy = false end)
                 else
+                    _msBusy = true
                     _activePopup = nil
-                    Tween(popup, { Size = UDim2.new(0, 440, 0, 0) }, 0.12)
+                    local pw = popup.AbsoluteSize.X
+                    Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
-                        pcall(function() popup.Visible = false end)
+                        if not open then pcall(function() popup.Visible = false end) end
+                        _msBusy = false
                     end)
                 end
             end)
