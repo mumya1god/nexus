@@ -2433,7 +2433,9 @@ function NexusUI:CreateWindow(opts)
                 if open then
                     open = false
                     _msBusy = true
-                    _activePopup = nil
+                    if _activePopup and _activePopup.frame == popup then
+                        _activePopup = nil
+                    end
                     local pw = math.max(8, _msPopupW)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.15)
                     task.delay(0.16, function()
@@ -2443,6 +2445,49 @@ function NexusUI:CreateWindow(opts)
                 end
             end
 
+            local function OpenMPS()
+                if _msBusy then return end
+                if _activePopup and _activePopup.frame ~= popup and _activePopup.close then
+                    pcall(_activePopup.close)
+                end
+                open = true
+                _msBusy = true
+                RefreshList()
+                local ap  = msBtn.AbsolutePosition
+                local as  = msBtn.AbsoluteSize
+                local mp  = main.AbsolutePosition
+                local ms  = main.AbsoluteSize
+                local pw  = ms.X - 16
+                _msPopupW = pw
+                local px  = mp.X + 8
+                local count    = math.max(1, #Players:GetPlayers())
+                local desiredH = math.min(count * 44 + 8, 200)
+                local spaceBelow = (mp.Y + ms.Y - 4) - (ap.Y + as.Y + 4)
+                local spaceAbove = ap.Y - mp.Y - 4
+                local h, py
+                if desiredH <= spaceBelow then
+                    h  = desiredH
+                    py = ap.Y + as.Y + 4
+                elseif spaceAbove >= desiredH then
+                    h  = desiredH
+                    py = ap.Y - desiredH - 4
+                else
+                    if spaceBelow >= spaceAbove then
+                        h  = math.max(44, spaceBelow)
+                        py = ap.Y + as.Y + 4
+                    else
+                        h  = math.max(44, spaceAbove)
+                        py = ap.Y - h - 4
+                    end
+                end
+                popup.Size     = UDim2.new(0, pw, 0, 0)
+                popup.Position = UDim2.new(0, px, 0, py)
+                popup.Visible  = true
+                _RegisterPopup(CloseMPS, popup, msBtn)
+                Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.2)
+                task.delay(0.2, function() _msBusy = false end)
+            end
+
             msBtn.MouseButton1Click:Connect(function()
                 local now = os.clock()
                 if now - _msLastTime < _MS_CD then return end
@@ -2450,55 +2495,15 @@ function NexusUI:CreateWindow(opts)
                 if _msBusy then return end
 
                 if open then
-                    open = false
-                    _activePopup = nil
-                    _msBusy = true
-                    local pw = math.max(8, _msPopupW)
-                    Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.15)
-                    task.delay(0.16, function()
-                        if not open then pcall(function() popup.Visible = false end) end
-                        _msBusy = false
-                    end)
+                    CloseMPS()
                 else
-                    if _activePopup and _activePopup.frame ~= popup and _activePopup.close then
-                        pcall(_activePopup.close)
-                    end
-                    open = true
-                    _msBusy = true
-                    RefreshList()
-                    local ap  = msBtn.AbsolutePosition
-                    local as  = msBtn.AbsoluteSize
-                    local mp  = main.AbsolutePosition
-                    local ms  = main.AbsoluteSize
-                    local pw  = ms.X - 16
-                    _msPopupW = pw
-                    local px  = mp.X + 8
-                    local count    = math.max(1, #Players:GetPlayers())
-                    local desiredH = math.min(count * 44 + 8, 200)
-                    local spaceBelow = (mp.Y + ms.Y - 4) - (ap.Y + as.Y + 4)
-                    local spaceAbove = ap.Y - mp.Y - 4
-                    local h, py
-                    if desiredH <= spaceBelow then
-                        h  = desiredH
-                        py = ap.Y + as.Y + 4
-                    elseif spaceAbove >= desiredH then
-                        h  = desiredH
-                        py = ap.Y - desiredH - 4
-                    else
-                        if spaceBelow >= spaceAbove then
-                            h  = math.max(44, spaceBelow)
-                            py = ap.Y + as.Y + 4
-                        else
-                            h  = math.max(44, spaceAbove)
-                            py = ap.Y - h - 4
-                        end
-                    end
-                    popup.Size     = UDim2.new(0, pw, 0, 0)
-                    popup.Position = UDim2.new(0, px, 0, py)
-                    popup.Visible  = true
-                    _RegisterPopup(CloseMPS, popup, msBtn)
-                    Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.2)
-                    task.delay(0.2, function() _msBusy = false end)
+                    OpenMPS()
+                end
+            end)
+
+            popupScroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+                if open then
+                    CloseMPS()
                 end
             end)
 
