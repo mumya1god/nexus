@@ -13,7 +13,7 @@
 
     USAGE EXAMPLE:
 
-        local Nexus = loadstring(game:HttpGet("https;//raw.githubusercontent.com/mumya1god/nexus/library.lua"))()
+        local Nexus = loadstring(game:HttpGet("https://raw.githubusercontent.com/mumya1god/nexus/library.lua"))()
 
         local Window = Nexus:CreateWindow({
             Title    = "MY SCRIPT USING NEXUS",
