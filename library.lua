@@ -2424,6 +2424,12 @@ function NexusUI:CreateWindow(opts)
                 end
             end
 
+            popupScroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+                if open then
+                    CloseMPS()
+                end
+            end)
+
             local _msPopupW   = 0
             local _msLastTime = 0
             local _MS_CD      = 0.1
@@ -2495,7 +2501,6 @@ function NexusUI:CreateWindow(opts)
                     popup.Size     = UDim2.new(0, pw, 0, 0)
                     popup.Position = UDim2.new(0, px, 0, py)
                     popup.Visible  = true
-                    _activePopup   = { close = CloseMPS, frame = popup, trigger = msBtn }
                     _RegisterPopup(CloseMPS, popup, msBtn)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.2)
                     task.delay(0.2, function() _msBusy = false end)
