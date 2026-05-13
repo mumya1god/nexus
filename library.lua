@@ -2435,8 +2435,15 @@ function NexusUI:CreateWindow(opts)
                 open = not open
                 if open then
                     _msBusy = true
+                    -- Close any OTHER active popup, but never call CloseMPS on ourselves
+                    -- (calling CloseMPS mid-open sets open=false and causes instant close)
+                    if _activePopup and _activePopup.frame ~= popup and _activePopup.close then
+                        pcall(_activePopup.close)
+                    end
+                    _activePopup = { close = CloseMPS, frame = popup, trigger = msBtn }
+                    -- open may have been clobbered if _activePopup.close happened to be CloseMPS
+                    open = true
                     RefreshList()
-                    _RegisterPopup(CloseMPS, popup, msBtn)
                     local ap  = msBtn.AbsolutePosition
                     local as  = msBtn.AbsoluteSize
                     local mp  = main.AbsolutePosition
@@ -2463,6 +2470,7 @@ function NexusUI:CreateWindow(opts)
                             py = ap.Y - h - 4
                         end
                     end
+                    popup.Size     = UDim2.new(0, pw, 0, 0)
                     popup.Position = UDim2.new(0, px, 0, py)
                     popup.Visible  = true
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
@@ -2470,7 +2478,7 @@ function NexusUI:CreateWindow(opts)
                 else
                     _msBusy = true
                     _activePopup = nil
-                    local pw = popup.AbsoluteSize.X
+                    local pw = math.max(1, popup.AbsoluteSize.X)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
