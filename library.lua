@@ -152,6 +152,7 @@ local function MakeDraggable(frame, handle, onDragStart)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
+        if not frame.Parent then dragging = false; return end
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             if not moved and (math.abs(delta.X) > 4 or math.abs(delta.Y) > 4) then
@@ -216,11 +217,11 @@ function NexusUI:Notify(opts)
     })[notifType] or T.Accent
 
     local icon = ({
-        Info    = "💬",
+        Info    = "i",
         Success = "✓",
-        Error   = "✕",
-        Warning = "⚠",
-    })[notifType] or "💬"
+        Error   = "X",
+        Warning = "!",
+    })[notifType] or "i"
 
     local notif = Create("Frame", {
         Name                   = "Notif",
@@ -295,9 +296,24 @@ function NexusUI:Notify(opts)
     Tween(prog, { Size = UDim2.new(0, 0, 0, 2) }, duration, Enum.EasingStyle.Linear)
 
     task.delay(duration, function()
-        Tween(notif, { BackgroundTransparency = 1 }, 0.4)
-        task.wait(0.4)
-        notif:Destroy()
+        if not notif.Parent then return end
+        local FADE = 0.35
+        Tween(notif, { BackgroundTransparency = 1 }, FADE)
+        for _, obj in ipairs(notif:GetDescendants()) do
+            pcall(function()
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                    Tween(obj, { TextTransparency = 1, BackgroundTransparency = 1 }, FADE)
+                elseif obj:IsA("Frame") then
+                    Tween(obj, { BackgroundTransparency = 1 }, FADE)
+                elseif obj:IsA("ImageLabel") then
+                    Tween(obj, { ImageTransparency = 1, BackgroundTransparency = 1 }, FADE)
+                elseif obj:IsA("UIStroke") then
+                    Tween(obj, { Transparency = 1 }, FADE)
+                end
+            end)
+        end
+        task.wait(FADE + 0.05)
+        pcall(function() notif:Destroy() end)
     end)
 end
 
@@ -350,6 +366,7 @@ function NexusUI:CreateWindow(opts)
     Window._activeTab    = nil
     Window._theme        = T
     Window._toggleResets = {}
+    local _windowActive  = true
 
     local _activePopup = nil
 
@@ -368,6 +385,7 @@ function NexusUI:CreateWindow(opts)
     end
 
     UserInputService.InputBegan:Connect(function(inp)
+        if not _windowActive then return end
         if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if not _activePopup or not _activePopup.frame then return end
         local f  = _activePopup.frame
@@ -534,6 +552,7 @@ function NexusUI:CreateWindow(opts)
 
     local _menuToggleKey = Enum.KeyCode.RightShift
     UserInputService.InputBegan:Connect(function(inp, gpe)
+        if not _windowActive then return end
         if gpe then return end
         if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
         if inp.KeyCode == _menuToggleKey then
@@ -546,6 +565,7 @@ function NexusUI:CreateWindow(opts)
     end)
 
     closeBtn.MouseButton1Click:Connect(function()
+        _windowActive = false
         for _, resetFn in ipairs(Window._toggleResets) do
             pcall(resetFn)
         end
@@ -1137,11 +1157,13 @@ function NexusUI:CreateWindow(opts)
                 UpdateSlider(Mouse.X)
             end)
             UserInputService.InputEnded:Connect(function(inp)
+                if not _windowActive then dragging = false; return end
                 if inp.UserInputType == Enum.UserInputType.MouseButton1 then
                     dragging = false
                 end
             end)
             RunService.RenderStepped:Connect(function()
+                if not _windowActive then dragging = false; return end
                 if dragging then UpdateSlider(Mouse.X) end
             end)
 
@@ -1422,6 +1444,7 @@ function NexusUI:CreateWindow(opts)
             end)
 
             UserInputService.InputBegan:Connect(function(inp, gpe)
+                if not _windowActive then listening = false; return end
                 if gpe then return end
                 if listening and inp.UserInputType == Enum.UserInputType.Keyboard then
                     current          = inp.KeyCode
@@ -1738,12 +1761,14 @@ function NexusUI:CreateWindow(opts)
                     Eval(Mouse.X)
                 end)
                 RunService.RenderStepped:Connect(function()
+                    if not _windowActive then dragging = false; return end
                     if dragging then Eval(Mouse.X) end
                 end)
                 btn.MouseMoved:Connect(function(x, _)
                     if dragging then Eval(x) end
                 end)
                 UserInputService.InputEnded:Connect(function(inp)
+                    if not _windowActive then dragging = false; return end
                     if inp.UserInputType == Enum.UserInputType.MouseButton1 then
                         dragging = false
                     end
@@ -1885,17 +1910,19 @@ function NexusUI:CreateWindow(opts)
 
             local btnAvatar = Create("ImageLabel", {
                 BackgroundTransparency = 1,
-                Size     = UDim2.new(0, 20, 0, 20),
-                Position = UDim2.new(0, 4, 0.5, -10),
-                Image    = "rbxassetid://1",
-                Parent   = psBtn,
+                Size              = UDim2.new(0, 20, 0, 20),
+                Position          = UDim2.new(0, 4, 0.5, -10),
+                Image             = "",
+                ImageTransparency = 1,
+                Visible           = false,
+                Parent            = psBtn,
             })
             Create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = btnAvatar })
 
             local btnLabel = Create("TextLabel", {
                 BackgroundTransparency = 1,
-                Size             = UDim2.new(1, -28, 1, 0),
-                Position         = UDim2.new(0, 28, 0, 0),
+                Size             = UDim2.new(1, -10, 1, 0),
+                Position         = UDim2.new(0, 8, 0, 0),
                 Text             = "Select player...",
                 TextColor3       = T.TextSecondary,
                 TextSize         = 10,
@@ -2037,9 +2064,13 @@ function NexusUI:CreateWindow(opts)
                     end)
 
                     row.MouseButton1Click:Connect(function()
-                        selected            = plr
-                        btnLabel.Text       = plr.DisplayName
-                        btnLabel.TextColor3 = T.TextPrimary
+                        selected                  = plr
+                        btnLabel.Text             = plr.DisplayName
+                        btnLabel.TextColor3       = T.TextPrimary
+                        btnLabel.Size             = UDim2.new(1, -32, 1, 0)
+                        btnLabel.Position         = UDim2.new(0, 28, 0, 0)
+                        btnAvatar.Visible         = true
+                        btnAvatar.ImageTransparency = 0
                         LoadAvatar(plr.UserId, btnAvatar)
                         _activePopup = nil
                         ClosePlayerSelector()
@@ -2077,13 +2108,20 @@ function NexusUI:CreateWindow(opts)
             function ctrl:Set(plr)
                 selected = plr
                 if plr then
-                    btnLabel.Text       = plr.DisplayName
-                    btnLabel.TextColor3 = T.TextPrimary
+                    btnLabel.Text             = plr.DisplayName
+                    btnLabel.TextColor3       = T.TextPrimary
+                    btnLabel.Size             = UDim2.new(1, -32, 1, 0)
+                    btnLabel.Position         = UDim2.new(0, 28, 0, 0)
+                    btnAvatar.Visible         = true
+                    btnAvatar.ImageTransparency = 0
                     LoadAvatar(plr.UserId, btnAvatar)
                 else
-                    btnLabel.Text       = "Select player..."
-                    btnLabel.TextColor3 = T.TextSecondary
-                    btnAvatar.Image     = "rbxassetid://1"
+                    btnLabel.Text             = "Select player..."
+                    btnLabel.TextColor3       = T.TextSecondary
+                    btnLabel.Size             = UDim2.new(1, -10, 1, 0)
+                    btnLabel.Position         = UDim2.new(0, 8, 0, 0)
+                    btnAvatar.Visible         = false
+                    btnAvatar.Image           = ""
                 end
                 callback(plr)
             end
@@ -2383,6 +2421,7 @@ function NexusUI:CreateWindow(opts)
     end
 
     function Window:Destroy()
+        _windowActive = false
         sg:Destroy()
         if shared then
             shared.NexusUIWindow = nil
