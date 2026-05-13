@@ -2416,7 +2416,7 @@ function NexusUI:CreateWindow(opts)
 
             local _msPopupW   = 0
             local _msLastTime = 0
-            local _MS_CD      = 0.35
+            local _MS_CD      = 0.1
 
             local function CloseMPS()
                 if open then
@@ -2481,6 +2481,7 @@ function NexusUI:CreateWindow(opts)
                     popup.Position = UDim2.new(0, px, 0, py)
                     popup.Visible  = true
                     _activePopup   = { close = CloseMPS, frame = popup, trigger = msBtn }
+                    _RegisterPopup(CloseMPS, popup, msBtn)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.2)
                 end
             end)
