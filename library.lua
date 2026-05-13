@@ -1357,7 +1357,9 @@ function NexusUI:CreateWindow(opts)
                 if open then
                     open = false
                     Tween(dropdown, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
-                    task.delay(0.13, function() pcall(function() dropdown.Visible = false end) end)
+                    task.delay(0.13, function()
+                        if not open then pcall(function() dropdown.Visible = false end) end
+                    end)
                 end
             end
 
@@ -1384,6 +1386,7 @@ function NexusUI:CreateWindow(opts)
                 itemBtn.MouseButton1Click:Connect(function()
                     selected     = item
                     ddLabel.Text = item
+                    _activePopup = nil
                     CloseDropdown()
                     callback(selected)
                 end)
@@ -1821,7 +1824,9 @@ function NexusUI:CreateWindow(opts)
                 _lastToggleTime   = os.clock()
                 task.defer(function() _inputJustClosed = false end)
                 Tween(picker, { Size = UDim2.new(0, PICKER_W, 0, 0) }, 0.14)
-                task.delay(0.15, function() pcall(function() picker.Visible = false end) end)
+                task.delay(0.15, function()
+                    if not open then pcall(function() picker.Visible = false end) end
+                end)
             end
 
             local function OpenPicker()
@@ -2130,6 +2135,22 @@ function NexusUI:CreateWindow(opts)
             el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
+            Players.PlayerRemoving:Connect(function(plr)
+                if open then
+                    RefreshList()
+                end
+                if selected == plr then
+                    selected                  = nil
+                    btnLabel.Text             = "Select player..."
+                    btnLabel.TextColor3       = T.TextSecondary
+                    btnLabel.Size             = UDim2.new(1, -10, 1, 0)
+                    btnLabel.Position         = UDim2.new(0, 8, 0, 0)
+                    btnAvatar.Visible         = false
+                    btnAvatar.Image           = ""
+                    pcall(function() callback(nil) end)
+                end
+            end)
+
             local ctrl = {}
             function ctrl:Get() return selected end
             function ctrl:Set(plr)
@@ -2422,10 +2443,28 @@ function NexusUI:CreateWindow(opts)
                     local ms  = main.AbsoluteSize
                     local pw  = ms.X - 16
                     local px  = mp.X + 8
-                    popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
-                    popup.Visible  = true
                     local count = math.max(1, #Players:GetPlayers())
-                    local h = math.min(count * 44, 200)
+                    local desiredH = math.min(count * 44 + 8, 200)
+                    local spaceBelow = (mp.Y + ms.Y - 4) - (ap.Y + as.Y + 4)
+                    local spaceAbove = ap.Y - mp.Y - 4
+                    local h, py
+                    if desiredH <= spaceBelow then
+                        h  = desiredH
+                        py = ap.Y + as.Y + 4
+                    elseif spaceAbove >= desiredH then
+                        h  = desiredH
+                        py = ap.Y - desiredH - 4
+                    else
+                        if spaceBelow >= spaceAbove then
+                            h  = math.max(44, spaceBelow)
+                            py = ap.Y + as.Y + 4
+                        else
+                            h  = math.max(44, spaceAbove)
+                            py = ap.Y - h - 4
+                        end
+                    end
+                    popup.Position = UDim2.new(0, px, 0, py)
+                    popup.Visible  = true
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
                     task.delay(0.18, function() _msBusy = false end)
                 else
@@ -2442,6 +2481,23 @@ function NexusUI:CreateWindow(opts)
 
             el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
+
+            Players.PlayerRemoving:Connect(function(plr)
+                local removed = false
+                for i = #selected, 1, -1 do
+                    if selected[i] == plr then
+                        table.remove(selected, i)
+                        removed = true
+                    end
+                end
+                if removed then
+                    UpdateLabel()
+                    pcall(function() callback(selected) end)
+                end
+                if open then
+                    RefreshList()
+                end
+            end)
 
             local ctrl = {}
             function ctrl:Get() return selected end
