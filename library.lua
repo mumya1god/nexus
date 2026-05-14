@@ -2196,6 +2196,8 @@ function NexusUI:CreateWindow(opts)
             local maxSelect = opts.Max      or math.huge
 
             local selected = {}
+            local open = false
+            local _closing = false
 
             local el = BaseElement(46)
             NameDesc(el, name, desc)
@@ -2238,7 +2240,7 @@ function NexusUI:CreateWindow(opts)
             local popup = Create("Frame", {
                 BackgroundColor3 = T.Surface,
                 BorderSizePixel  = 0,
-                Size             = UDim2.new(0, 0, 0, 0),
+                Size             = UDim2.new(0, 200, 0, 0),
                 Position         = UDim2.new(0, 0, 0, 0),
                 ClipsDescendants = true,
                 ZIndex           = 200,
@@ -2273,9 +2275,6 @@ function NexusUI:CreateWindow(opts)
                 Parent        = popupScroll,
             })
 
-            local open = false
-            local _popupWidth = 200
-
             local _msTween = nil
             local function _TweenMs(props, dur)
                 if _msTween then pcall(function() _msTween:Cancel() end) end
@@ -2287,9 +2286,13 @@ function NexusUI:CreateWindow(opts)
             local function CloseMPS()
                 if not open then return end
                 open = false
-                _TweenMs({ Size = UDim2.new(0, _popupWidth, 0, 0) }, 0.12)
-                task.delay(0.14, function()
-                    if not open then pcall(function() popup.Visible = false end) end
+                _closing = true
+                _TweenMs({ Size = UDim2.new(0, popup.Size.X.Offset, 0, 0) }, 0.12)
+                task.delay(0.15, function()
+                    if not open then
+                        pcall(function() popup.Visible = false end)
+                    end
+                    _closing = false
                 end)
             end
 
@@ -2445,9 +2448,10 @@ function NexusUI:CreateWindow(opts)
             end
 
             msBtn.MouseButton1Click:Connect(function()
+                if _closing then return end
                 if open then
-                    CloseMPS()
                     _activePopup = nil
+                    CloseMPS()
                     return
                 end
                 open = true
@@ -2457,7 +2461,6 @@ function NexusUI:CreateWindow(opts)
                 local mp = main.AbsolutePosition
                 local ms = main.AbsoluteSize
                 local pw = math.min(200, ms.X - 16)
-                _popupWidth = pw
                 local px = math.clamp(ap.X, mp.X + 8, mp.X + ms.X - pw - 8)
                 local count = math.max(1, #Players:GetPlayers())
                 local h = math.min(count * 44 + 8, 200)
