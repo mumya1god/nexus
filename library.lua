@@ -2274,6 +2274,7 @@ function NexusUI:CreateWindow(opts)
             })
 
             local open = false
+            local _popupWidth = 200
 
             local _msTween = nil
             local function _TweenMs(props, dur)
@@ -2284,13 +2285,12 @@ function NexusUI:CreateWindow(opts)
             end
 
             local function CloseMPS()
-                if open then
-                    open = false
-                    _TweenMs({ Size = UDim2.new(0, popup.Size.X.Offset, 0, 0) }, 0.12)
-                    task.delay(0.13, function()
-                        if not open then pcall(function() popup.Visible = false end) end
-                    end)
-                end
+                if not open then return end
+                open = false
+                _TweenMs({ Size = UDim2.new(0, _popupWidth, 0, 0) }, 0.12)
+                task.delay(0.14, function()
+                    if not open then pcall(function() popup.Visible = false end) end
+                end)
             end
 
             local function UpdateLabel()
@@ -2445,32 +2445,27 @@ function NexusUI:CreateWindow(opts)
             end
 
             msBtn.MouseButton1Click:Connect(function()
-                open = not open
                 if open then
-                    if _activePopup and _activePopup.frame == popup then
-                        _activePopup = nil
-                    end
-                    RefreshList()
-                    _RegisterPopup(CloseMPS, popup, msBtn)
-                    local ap = msBtn.AbsolutePosition
-                    local as = msBtn.AbsoluteSize
-                    local mp = main.AbsolutePosition
-                    local ms = main.AbsoluteSize
-                    local pw = math.min(200, ms.X - 16)
-                    local px = math.clamp(ap.X, mp.X + 8, mp.X + ms.X - pw - 8)
-                    local count = math.max(1, #Players:GetPlayers())
-                    local h = math.min(count * 44 + 8, 200)
-                    popup.Size     = UDim2.new(0, pw, 0, 0)
-                    popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
-                    popup.Visible  = true
-                    _TweenMs({ Size = UDim2.new(0, pw, 0, h) }, 0.18)
-                else
+                    CloseMPS()
                     _activePopup = nil
-                    _TweenMs({ Size = UDim2.new(0, popup.Size.X.Offset, 0, 0) }, 0.12)
-                    task.delay(0.13, function()
-                        if not open then pcall(function() popup.Visible = false end) end
-                    end)
+                    return
                 end
+                open = true
+                RefreshList()
+                local ap = msBtn.AbsolutePosition
+                local as = msBtn.AbsoluteSize
+                local mp = main.AbsolutePosition
+                local ms = main.AbsoluteSize
+                local pw = math.min(200, ms.X - 16)
+                _popupWidth = pw
+                local px = math.clamp(ap.X, mp.X + 8, mp.X + ms.X - pw - 8)
+                local count = math.max(1, #Players:GetPlayers())
+                local h = math.min(count * 44 + 8, 200)
+                popup.Size     = UDim2.new(0, pw, 0, 0)
+                popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
+                popup.Visible  = true
+                _RegisterPopup(CloseMPS, popup, msBtn)
+                _TweenMs({ Size = UDim2.new(0, pw, 0, h) }, 0.18)
             end)
 
             el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
