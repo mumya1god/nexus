@@ -1392,12 +1392,12 @@ function NexusUI:CreateWindow(opts)
                 end)
             end
 
-            local _ddBusy = false
             ddBtn.MouseButton1Click:Connect(function()
-                if _ddBusy then return end
                 open = not open
                 if open then
-                    _ddBusy = true
+                    if _activePopup and _activePopup.frame == dropdown then
+                        _activePopup = nil
+                    end
                     _RegisterPopup(CloseDropdown, dropdown, ddBtn)
                     local ap = ddBtn.AbsolutePosition
                     local as = ddBtn.AbsoluteSize
@@ -1405,14 +1405,11 @@ function NexusUI:CreateWindow(opts)
                     dropdown.Visible = true
                     local h = math.min(#items * 28, 140)
                     Tween(dropdown, { Size = UDim2.new(0, 148, 0, h) }, 0.18)
-                    task.delay(0.18, function() _ddBusy = false end)
                 else
-                    _ddBusy = true
                     _activePopup = nil
                     Tween(dropdown, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() dropdown.Visible = false end) end
-                        _ddBusy = false
                     end)
                 end
             end)
@@ -2101,12 +2098,12 @@ function NexusUI:CreateWindow(opts)
                 end
             end
 
-            local _psBusy = false
             psBtn.MouseButton1Click:Connect(function()
-                if _psBusy then return end
                 open = not open
                 if open then
-                    _psBusy = true
+                    if _activePopup and _activePopup.frame == popup then
+                        _activePopup = nil
+                    end
                     RefreshList()
                     _RegisterPopup(ClosePlayerSelector, popup, psBtn)
                     local ap  = psBtn.AbsolutePosition
@@ -2120,14 +2117,11 @@ function NexusUI:CreateWindow(opts)
                     local count = math.max(1, #Players:GetPlayers())
                     local h = math.min(count * 44, 200)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
-                    task.delay(0.18, function() _psBusy = false end)
                 else
-                    _psBusy = true
                     _activePopup = nil
                     Tween(popup, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
-                        _psBusy = false
                     end)
                 end
             end)
@@ -2415,32 +2409,21 @@ function NexusUI:CreateWindow(opts)
             end
 
             local _msPopupW = 0
-            local _msBusy   = false
 
             local function CloseMPS()
-                -- Block while busy (open or close animation is running).
-                if _msBusy then return end
                 if open then
-                    open     = false
-                    _msBusy  = true   -- hold off button clicks during close animation
+                    open = false
                     local pw = math.max(8, _msPopupW)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
-                        _msBusy = false
                     end)
                 end
             end
 
             msBtn.MouseButton1Click:Connect(function()
-                if _msBusy then return end
                 open = not open
                 if open then
-                    _msBusy = true
-                    -- If _activePopup still points to this MPS popup (e.g. it was
-                    -- closed externally via scroll/outside-click without going through
-                    -- the button handler), clear it before _RegisterPopup so it does
-                    -- not call CloseMPS on itself mid-open and flip open back to false.
                     if _activePopup and _activePopup.frame == popup then
                         _activePopup = nil
                     end
@@ -2477,15 +2460,12 @@ function NexusUI:CreateWindow(opts)
                     popup.Position = UDim2.new(0, px, 0, py)
                     popup.Visible  = true
                     Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
-                    task.delay(0.18, function() _msBusy = false end)
                 else
-                    _msBusy = true
                     _activePopup = nil
                     local pw = math.max(8, _msPopupW)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
-                        _msBusy = false
                     end)
                 end
             end)
