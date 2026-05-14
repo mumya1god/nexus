@@ -1353,10 +1353,18 @@ function NexusUI:CreateWindow(opts)
             Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = dropdown })
             local ddList = Create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = dropdown })
 
+            local _ddTween = nil
+            local function _TweenDd(props, dur)
+                if _ddTween then pcall(function() _ddTween:Cancel() end) end
+                local info = TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                _ddTween = TweenService:Create(dropdown, info, props)
+                _ddTween:Play()
+            end
+
             local function CloseDropdown()
                 if open then
                     open = false
-                    Tween(dropdown, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
+                    _TweenDd({ Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() dropdown.Visible = false end) end
                     end)
@@ -1401,13 +1409,14 @@ function NexusUI:CreateWindow(opts)
                     _RegisterPopup(CloseDropdown, dropdown, ddBtn)
                     local ap = ddBtn.AbsolutePosition
                     local as = ddBtn.AbsoluteSize
+                    dropdown.Size = UDim2.new(0, 148, 0, 0)
                     dropdown.Position = UDim2.new(0, ap.X, 0, ap.Y + as.Y + 4)
                     dropdown.Visible = true
                     local h = math.min(#items * 28, 140)
-                    Tween(dropdown, { Size = UDim2.new(0, 148, 0, h) }, 0.18)
+                    _TweenDd({ Size = UDim2.new(0, 148, 0, h) }, 0.18)
                 else
                     _activePopup = nil
-                    Tween(dropdown, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
+                    _TweenDd({ Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() dropdown.Visible = false end) end
                     end)
@@ -1991,10 +2000,18 @@ function NexusUI:CreateWindow(opts)
 
             local open = false
 
+            local _psTween = nil
+            local function _TweenPs(props, dur)
+                if _psTween then pcall(function() _psTween:Cancel() end) end
+                local info = TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                _psTween = TweenService:Create(popup, info, props)
+                _psTween:Play()
+            end
+
             local function ClosePlayerSelector()
                 if open then
                     open = false
-                    Tween(popup, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
+                    _TweenPs({ Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
                     end)
@@ -2112,14 +2129,15 @@ function NexusUI:CreateWindow(opts)
                     local mp  = main.AbsolutePosition
                     local ms  = main.AbsoluteSize
                     local px  = math.clamp(ap.X, mp.X, mp.X + ms.X - pw)
+                    popup.Size     = UDim2.new(0, pw, 0, 0)
                     popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
                     popup.Visible  = true
                     local count = math.max(1, #Players:GetPlayers())
                     local h = math.min(count * 44, 200)
-                    Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
+                    _TweenPs({ Size = UDim2.new(0, pw, 0, h) }, 0.18)
                 else
                     _activePopup = nil
-                    Tween(popup, { Size = UDim2.new(0, 148, 0, 0) }, 0.12)
+                    _TweenPs({ Size = UDim2.new(0, 148, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
                     end)
@@ -2409,12 +2427,19 @@ function NexusUI:CreateWindow(opts)
             end
 
             local _msPopupW = 0
+            local _msTween  = nil
+            local function _TweenMs(props, dur)
+                if _msTween then pcall(function() _msTween:Cancel() end) end
+                local info = TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                _msTween = TweenService:Create(popup, info, props)
+                _msTween:Play()
+            end
 
             local function CloseMPS()
                 if open then
                     open = false
                     local pw = math.max(8, _msPopupW)
-                    Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
+                    _TweenMs({ Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
                     end)
@@ -2459,11 +2484,11 @@ function NexusUI:CreateWindow(opts)
                     popup.Size     = UDim2.new(0, pw, 0, 0)
                     popup.Position = UDim2.new(0, px, 0, py)
                     popup.Visible  = true
-                    Tween(popup, { Size = UDim2.new(0, pw, 0, h) }, 0.18)
+                    _TweenMs({ Size = UDim2.new(0, pw, 0, h) }, 0.18)
                 else
                     _activePopup = nil
                     local pw = math.max(8, _msPopupW)
-                    Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
+                    _TweenMs({ Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
                     end)
