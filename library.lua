@@ -2418,17 +2418,16 @@ function NexusUI:CreateWindow(opts)
             local _msBusy   = false
 
             local function CloseMPS()
-                -- While _msBusy is true the open animation is still running.
-                -- Allowing CloseMPS to fire during that window sets open=false
-                -- while _msBusy stays true from the open delay, causing the
-                -- "need 4-5 clicks" stuck-flag bug. Guard against that here.
+                -- Block while busy (open or close animation is running).
                 if _msBusy then return end
                 if open then
-                    open = false
+                    open     = false
+                    _msBusy  = true   -- hold off button clicks during close animation
                     local pw = math.max(8, _msPopupW)
                     Tween(popup, { Size = UDim2.new(0, pw, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
+                        _msBusy = false
                     end)
                 end
             end
