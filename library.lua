@@ -2275,6 +2275,24 @@ function NexusUI:CreateWindow(opts)
 
             local open = false
 
+            local _msTween = nil
+            local function _TweenMs(props, dur)
+                if _msTween then pcall(function() _msTween:Cancel() end) end
+                local info = TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                _msTween = TweenService:Create(popup, info, props)
+                _msTween:Play()
+            end
+
+            local function CloseMPS()
+                if open then
+                    open = false
+                    _TweenMs({ Size = UDim2.new(0, popup.Size.X.Offset, 0, 0) }, 0.12)
+                    task.delay(0.13, function()
+                        if not open then pcall(function() popup.Visible = false end) end
+                    end)
+                end
+            end
+
             local function UpdateLabel()
                 if #selected == 0 then
                     msLabel.Text       = "Select players..."
@@ -2426,26 +2444,6 @@ function NexusUI:CreateWindow(opts)
                 end
             end
 
-            local _msPopupW = 0
-            local _msTween  = nil
-            local function _TweenMs(props, dur)
-                if _msTween then pcall(function() _msTween:Cancel() end) end
-                local info = TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-                _msTween = TweenService:Create(popup, info, props)
-                _msTween:Play()
-            end
-
-            local function CloseMPS()
-                if open then
-                    open = false
-                    local pw = math.max(8, _msPopupW)
-                    _TweenMs({ Size = UDim2.new(0, pw, 0, 0) }, 0.12)
-                    task.delay(0.13, function()
-                        if not open then pcall(function() popup.Visible = false end) end
-                    end)
-                end
-            end
-
             msBtn.MouseButton1Click:Connect(function()
                 open = not open
                 if open then
@@ -2454,41 +2452,21 @@ function NexusUI:CreateWindow(opts)
                     end
                     RefreshList()
                     _RegisterPopup(CloseMPS, popup, msBtn)
-                    local ap  = msBtn.AbsolutePosition
-                    local as  = msBtn.AbsoluteSize
-                    local mp  = main.AbsolutePosition
-                    local ms  = main.AbsoluteSize
-                    local pw  = ms.X - 16
-                    _msPopupW = pw
-                    local px  = mp.X + 8
-                    local count    = math.max(1, #Players:GetPlayers())
-                    local desiredH = math.min(count * 44 + 8, 200)
-                    local spaceBelow = (mp.Y + ms.Y - 4) - (ap.Y + as.Y + 4)
-                    local spaceAbove = ap.Y - mp.Y - 4
-                    local h, py
-                    if desiredH <= spaceBelow then
-                        h  = desiredH
-                        py = ap.Y + as.Y + 4
-                    elseif spaceAbove >= desiredH then
-                        h  = desiredH
-                        py = ap.Y - desiredH - 4
-                    else
-                        if spaceBelow >= spaceAbove then
-                            h  = math.max(44, spaceBelow)
-                            py = ap.Y + as.Y + 4
-                        else
-                            h  = math.max(44, spaceAbove)
-                            py = ap.Y - h - 4
-                        end
-                    end
+                    local ap = msBtn.AbsolutePosition
+                    local as = msBtn.AbsoluteSize
+                    local mp = main.AbsolutePosition
+                    local ms = main.AbsoluteSize
+                    local pw = math.min(200, ms.X - 16)
+                    local px = math.clamp(ap.X, mp.X + 8, mp.X + ms.X - pw - 8)
+                    local count = math.max(1, #Players:GetPlayers())
+                    local h = math.min(count * 44 + 8, 200)
                     popup.Size     = UDim2.new(0, pw, 0, 0)
-                    popup.Position = UDim2.new(0, px, 0, py)
+                    popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
                     popup.Visible  = true
                     _TweenMs({ Size = UDim2.new(0, pw, 0, h) }, 0.18)
                 else
                     _activePopup = nil
-                    local pw = math.max(8, _msPopupW)
-                    _TweenMs({ Size = UDim2.new(0, pw, 0, 0) }, 0.12)
+                    _TweenMs({ Size = UDim2.new(0, popup.Size.X.Offset, 0, 0) }, 0.12)
                     task.delay(0.13, function()
                         if not open then pcall(function() popup.Visible = false end) end
                     end)
@@ -2510,9 +2488,7 @@ function NexusUI:CreateWindow(opts)
                     UpdateLabel()
                     pcall(function() callback(selected) end)
                 end
-                if open then
-                    RefreshList()
-                end
+                if open then RefreshList() end
             end)
 
             local ctrl = {}
