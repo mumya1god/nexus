@@ -995,7 +995,7 @@ function NexusUI:CreateWindow(opts)
                 Parent           = scrollFrame,
             })
             Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = el })
-            Create("UIStroke",  { Color = Color3.fromRGB(14, 16, 26), Thickness = 1, Parent = el })
+            Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = el })
             return el
         end
 
@@ -1079,7 +1079,7 @@ function NexusUI:CreateWindow(opts)
                 callback(toggled)
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             table.insert(Window._toggleResets, function()
@@ -1199,7 +1199,7 @@ function NexusUI:CreateWindow(opts)
                 if dragging then UpdateSlider(Mouse.X) end
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             local ctrl = {}
@@ -1263,7 +1263,7 @@ function NexusUI:CreateWindow(opts)
                 callback()
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
         end
 
@@ -1303,7 +1303,7 @@ function NexusUI:CreateWindow(opts)
                 if enterPressed then callback(box.Text) end
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             local ctrl = {}
@@ -1445,7 +1445,7 @@ function NexusUI:CreateWindow(opts)
                 end
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             local ctrl = {}
@@ -1505,7 +1505,7 @@ function NexusUI:CreateWindow(opts)
                 end
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             local ctrl = {}
@@ -1885,7 +1885,7 @@ function NexusUI:CreateWindow(opts)
                 end
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             UpdateDisplay(selected)
@@ -2166,7 +2166,7 @@ function NexusUI:CreateWindow(opts)
                 end
             end)
 
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
+            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = T.SurfaceAlt }, 0.1) end)
             el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
 
             Players.PlayerRemoving:Connect(function(plr)
@@ -2230,7 +2230,7 @@ function NexusUI:CreateWindow(opts)
                 Parent           = scrollFrame,
             })
             Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = container })
-            Create("UIStroke",  { Color = Color3.fromRGB(14, 16, 26), Thickness = 1, Parent = container })
+            Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = container })
 
             local header = Create("Frame", {
                 BackgroundColor3 = T.SurfaceAlt,
@@ -2419,8 +2419,8 @@ function NexusUI:CreateWindow(opts)
 
     local function _PopulateAboutUs(tab)
         tab:CreateSection("Library")
-        tab:CreateLabel("NexusUI  —  Dark Navy UI Library  —  v1.0.0")
-        tab:CreateLabel("A lightweight Roblox UI library designed for clean, modern dark menus with smooth responsive controls.")
+        tab:CreateLabel("Nexus — UI Library  —  v1.0.0")
+        tab:CreateLabel("A lightweight Roblox UI library designed for clean, modern menus with smooth responsive controls.")
         tab:CreateSeparator()
 
         tab:CreateSection("Source Code")
