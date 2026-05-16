@@ -111,6 +111,28 @@ NexusUI.Themes = {
         TabActive        = Color3.fromRGB(120, 70,  240),
         Scrollbar        = Color3.fromRGB(30,  25,  50),
     },
+    White = {
+        Background       = Color3.fromRGB(255, 255, 255),
+        Surface          = Color3.fromRGB(248, 248, 252),
+        SurfaceAlt       = Color3.fromRGB(240, 241, 247),
+        Border           = Color3.fromRGB(215, 218, 230),
+        Accent           = Color3.fromRGB(70,  110, 230),
+        AccentHover      = Color3.fromRGB(50,  90,  210),
+        TextPrimary      = Color3.fromRGB(20,  22,  40),
+        TextSecondary    = Color3.fromRGB(140, 145, 170),
+        TextAccent       = Color3.fromRGB(60,  100, 220),
+        Success          = Color3.fromRGB(34,  139, 54),
+        Danger           = Color3.fromRGB(210, 35,  35),
+        Warning          = Color3.fromRGB(220, 135, 0),
+        ToggleOff        = Color3.fromRGB(215, 218, 230),
+        ToggleKnob       = Color3.fromRGB(255, 255, 255),
+        SliderFill       = Color3.fromRGB(70,  110, 230),
+        SliderTrack      = Color3.fromRGB(215, 218, 230),
+        TitleBar         = Color3.fromRGB(235, 237, 245),
+        TabBar           = Color3.fromRGB(245, 246, 250),
+        TabActive        = Color3.fromRGB(70,  110, 230),
+        Scrollbar        = Color3.fromRGB(200, 203, 218),
+    },
 }
 
 local function Tween(obj, props, duration, style, direction)
@@ -2188,322 +2210,6 @@ function NexusUI:CreateWindow(opts)
             return ctrl
         end
 
-        function Tab:CreateMultiPlayerSelector(opts)
-            opts = opts or {}
-            local name      = opts.Name     or "Players"
-            local desc      = opts.Desc     or ""
-            local callback  = opts.Callback or function() end
-            local maxSelect = opts.Max      or math.huge
-
-            local selected = {}
-            local open = false
-            local _closing = false
-
-            local el = BaseElement(46)
-            NameDesc(el, name, desc)
-
-            local msBtn = Create("TextButton", {
-                BackgroundColor3 = T.SurfaceAlt,
-                BorderSizePixel  = 0,
-                Size             = UDim2.new(0, 296, 0, 26),
-                Position         = UDim2.new(1, -308, 0.5, -13),
-                Text             = "",
-                Parent           = el,
-            })
-            Create("UICorner", { CornerRadius = UDim.new(0, 5), Parent = msBtn })
-            Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = msBtn })
-
-            local msLabel = Create("TextLabel", {
-                BackgroundTransparency = 1,
-                Size             = UDim2.new(1, -22, 1, 0),
-                Position         = UDim2.new(0, 8, 0, 0),
-                Text             = "Select players...",
-                TextColor3       = T.TextSecondary,
-                TextSize         = 10,
-                Font             = Enum.Font.Gotham,
-                TextXAlignment   = Enum.TextXAlignment.Left,
-                TextTruncate     = Enum.TextTruncate.AtEnd,
-                Parent           = msBtn,
-            })
-
-            Create("TextLabel", {
-                BackgroundTransparency = 1,
-                Size             = UDim2.new(0, 16, 1, 0),
-                Position         = UDim2.new(1, -18, 0, 0),
-                Text             = "v",
-                TextColor3       = T.TextSecondary,
-                TextSize         = 9,
-                Font             = Enum.Font.GothamBold,
-                Parent           = msBtn,
-            })
-
-            local popup = Create("Frame", {
-                BackgroundColor3 = T.Surface,
-                BorderSizePixel  = 0,
-                Size             = UDim2.new(0, 200, 0, 0),
-                Position         = UDim2.new(0, 0, 0, 0),
-                ClipsDescendants = true,
-                ZIndex           = 200,
-                Visible          = false,
-                Parent           = sg,
-            })
-            Create("UICorner", { CornerRadius = UDim.new(0, 7), Parent = popup })
-            Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = popup })
-
-            local popupScroll = Create("ScrollingFrame", {
-                BackgroundTransparency = 1,
-                BorderSizePixel        = 0,
-                Size                   = UDim2.new(1, 0, 1, 0),
-                CanvasSize             = UDim2.new(0, 0, 0, 0),
-                ScrollBarThickness     = 3,
-                ScrollBarImageColor3   = T.Scrollbar,
-                AutomaticCanvasSize    = Enum.AutomaticSize.Y,
-                ZIndex                 = 201,
-                Parent                 = popup,
-            })
-            Create("UIListLayout", {
-                SortOrder     = Enum.SortOrder.LayoutOrder,
-                FillDirection = Enum.FillDirection.Vertical,
-                Padding       = UDim.new(0, 2),
-                Parent        = popupScroll,
-            })
-            Create("UIPadding", {
-                PaddingTop    = UDim.new(0, 4),
-                PaddingBottom = UDim.new(0, 4),
-                PaddingLeft   = UDim.new(0, 4),
-                PaddingRight  = UDim.new(0, 4),
-                Parent        = popupScroll,
-            })
-
-            local _msTween = nil
-            local function _TweenMs(props, dur)
-                if _msTween then pcall(function() _msTween:Cancel() end) end
-                local info = TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-                _msTween = TweenService:Create(popup, info, props)
-                _msTween:Play()
-            end
-
-            local function CloseMPS()
-                if not open then return end
-                open = false
-                _closing = true
-                _TweenMs({ Size = UDim2.new(0, popup.Size.X.Offset, 0, 0) }, 0.12)
-                task.delay(0.15, function()
-                    if not open then
-                        pcall(function() popup.Visible = false end)
-                    end
-                    _closing = false
-                end)
-            end
-
-            local function UpdateLabel()
-                if #selected == 0 then
-                    msLabel.Text       = "Select players..."
-                    msLabel.TextColor3 = T.TextSecondary
-                elseif #selected == 1 then
-                    msLabel.Text       = selected[1].DisplayName
-                    msLabel.TextColor3 = T.TextPrimary
-                else
-                    msLabel.Text       = #selected .. " players selected"
-                    msLabel.TextColor3 = T.TextPrimary
-                end
-            end
-
-            local function IsSelected(plr)
-                for _, p in ipairs(selected) do
-                    if p == plr then return true end
-                end
-                return false
-            end
-
-            local function ToggleSelect(plr)
-                if IsSelected(plr) then
-                    for i, p in ipairs(selected) do
-                        if p == plr then table.remove(selected, i); break end
-                    end
-                else
-                    if #selected < maxSelect then
-                        table.insert(selected, plr)
-                    end
-                end
-                UpdateLabel()
-                callback(selected)
-            end
-
-            local function LoadAvatar(userId, imgLabel)
-                task.spawn(function()
-                    local ok, url = pcall(function()
-                        return Players:GetUserThumbnailAsync(
-                            userId,
-                            Enum.ThumbnailType.HeadShot,
-                            Enum.ThumbnailSize.Size48x48
-                        )
-                    end)
-                    if ok and url and imgLabel.Parent then
-                        imgLabel.Image = url
-                    end
-                end)
-            end
-
-            local function RefreshList()
-                for _, child in ipairs(popupScroll:GetChildren()) do
-                    if child:IsA("Frame") or child:IsA("TextButton") then
-                        child:Destroy()
-                    end
-                end
-
-                for _, plr in ipairs(Players:GetPlayers()) do
-                    local isSel = IsSelected(plr)
-
-                    local row = Create("TextButton", {
-                        BackgroundColor3       = isSel and T.Accent or T.SurfaceAlt,
-                        BackgroundTransparency = isSel and 0.7 or 0.4,
-                        BorderSizePixel        = 0,
-                        Size                   = UDim2.new(1, 0, 0, 42),
-                        Text                   = "",
-                        ZIndex                 = 202,
-                        Parent                 = popupScroll,
-                    })
-                    Create("UICorner", { CornerRadius = UDim.new(0, 5), Parent = row })
-
-                    local avatarImg = Create("ImageLabel", {
-                        BackgroundColor3 = T.Border,
-                        BorderSizePixel  = 0,
-                        Size             = UDim2.new(0, 32, 0, 32),
-                        Position         = UDim2.new(0, 5, 0.5, -16),
-                        Image            = "rbxassetid://1",
-                        ZIndex           = 203,
-                        Parent           = row,
-                    })
-                    Create("UICorner", { CornerRadius = UDim.new(0, 5), Parent = avatarImg })
-                    LoadAvatar(plr.UserId, avatarImg)
-
-                    Create("TextLabel", {
-                        BackgroundTransparency = 1,
-                        Size             = UDim2.new(1, -82, 0, 20),
-                        Position         = UDim2.new(0, 42, 0, 4),
-                        Text             = plr.DisplayName,
-                        TextColor3       = T.TextPrimary,
-                        TextSize         = 11,
-                        Font             = Enum.Font.GothamBold,
-                        TextXAlignment   = Enum.TextXAlignment.Left,
-                        TextTruncate     = Enum.TextTruncate.AtEnd,
-                        ZIndex           = 203,
-                        Parent           = row,
-                    })
-                    Create("TextLabel", {
-                        BackgroundTransparency = 1,
-                        Size             = UDim2.new(1, -82, 0, 14),
-                        Position         = UDim2.new(0, 42, 0, 22),
-                        Text             = "@" .. plr.Name,
-                        TextColor3       = T.TextSecondary,
-                        TextSize         = 9,
-                        Font             = Enum.Font.Gotham,
-                        TextXAlignment   = Enum.TextXAlignment.Left,
-                        TextTruncate     = Enum.TextTruncate.AtEnd,
-                        ZIndex           = 203,
-                        Parent           = row,
-                    })
-
-                    local checkBox = Create("Frame", {
-                        BackgroundColor3 = isSel and T.Accent or T.SurfaceAlt,
-                        BorderSizePixel  = 0,
-                        Size             = UDim2.new(0, 20, 0, 20),
-                        Position         = UDim2.new(1, -26, 0.5, -10),
-                        ZIndex           = 203,
-                        Parent           = row,
-                    })
-                    Create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = checkBox })
-                    Create("UIStroke", { Color = T.Border, Thickness = 1, Parent = checkBox })
-
-                    local checkMark = Create("TextLabel", {
-                        BackgroundTransparency = 1,
-                        Size             = UDim2.new(1, 0, 1, 0),
-                        Text             = isSel and "v" or "",
-                        TextColor3       = Color3.fromRGB(255, 255, 255),
-                        TextSize         = 10,
-                        Font             = Enum.Font.GothamBold,
-                        ZIndex           = 204,
-                        Parent           = checkBox,
-                    })
-
-                    row.MouseEnter:Connect(function()
-                        if not IsSelected(plr) then
-                            Tween(row, { BackgroundTransparency = 0.1 }, 0.1)
-                        end
-                    end)
-                    row.MouseLeave:Connect(function()
-                        Tween(row, { BackgroundTransparency = IsSelected(plr) and 0.7 or 0.4 }, 0.1)
-                    end)
-
-                    row.MouseButton1Click:Connect(function()
-                        ToggleSelect(plr)
-                        local nowSel = IsSelected(plr)
-                        checkMark.Text = nowSel and "v" or ""
-                        Tween(checkBox, { BackgroundColor3 = nowSel and T.Accent or T.SurfaceAlt }, 0.1)
-                        Tween(row, { BackgroundColor3 = nowSel and T.Accent or T.SurfaceAlt }, 0.1)
-                        Tween(row, { BackgroundTransparency = nowSel and 0.7 or 0.4 }, 0.1)
-                    end)
-                end
-            end
-
-            msBtn.MouseButton1Click:Connect(function()
-                if _closing then return end
-                if open then
-                    _activePopup = nil
-                    CloseMPS()
-                    return
-                end
-                open = true
-                RefreshList()
-                local ap = msBtn.AbsolutePosition
-                local as = msBtn.AbsoluteSize
-                local mp = main.AbsolutePosition
-                local ms = main.AbsoluteSize
-                local pw = math.min(200, ms.X - 16)
-                local px = math.clamp(ap.X, mp.X + 8, mp.X + ms.X - pw - 8)
-                local count = math.max(1, #Players:GetPlayers())
-                local h = math.min(count * 44 + 8, 200)
-                popup.Size     = UDim2.new(0, pw, 0, 0)
-                popup.Position = UDim2.new(0, px, 0, ap.Y + as.Y + 4)
-                popup.Visible  = true
-                _RegisterPopup(CloseMPS, popup, msBtn)
-                _TweenMs({ Size = UDim2.new(0, pw, 0, h) }, 0.18)
-            end)
-
-            el.MouseEnter:Connect(function() Tween(el, { BackgroundColor3 = Color3.fromRGB(14, 16, 26) }, 0.1) end)
-            el.MouseLeave:Connect(function() Tween(el, { BackgroundColor3 = T.Surface }, 0.1) end)
-
-            Players.PlayerRemoving:Connect(function(plr)
-                local removed = false
-                for i = #selected, 1, -1 do
-                    if selected[i] == plr then
-                        table.remove(selected, i)
-                        removed = true
-                    end
-                end
-                if removed then
-                    UpdateLabel()
-                    pcall(function() callback(selected) end)
-                end
-                if open then RefreshList() end
-            end)
-
-            local ctrl = {}
-            function ctrl:Get() return selected end
-            function ctrl:Set(plrTable)
-                selected = plrTable or {}
-                UpdateLabel()
-                callback(selected)
-            end
-            function ctrl:Clear()
-                selected = {}
-                UpdateLabel()
-                callback(selected)
-            end
-            return ctrl
-        end
-
         function Tab:CreateTextDisplay(opts)
             opts = opts or {}
             local name    = opts.Name    or "Text Display"
@@ -2790,7 +2496,6 @@ function NexusUI:CreateWindow(opts)
     function Window:CreateInput(o)         return self._defaultTab:CreateInput(o) end
     function Window:CreateKeybind(o)       return self._defaultTab:CreateKeybind(o) end
     function Window:CreatePlayerSelector(o)       return self._defaultTab:CreatePlayerSelector(o) end
-    function Window:CreateMultiPlayerSelector(o)  return self._defaultTab:CreateMultiPlayerSelector(o) end
     function Window:CreateTextDisplay(o)          return self._defaultTab:CreateTextDisplay(o) end
 
     function Window:Notify(opts)
