@@ -113,25 +113,25 @@ NexusUI.Themes = {
     },
     White = {
         Background       = Color3.fromRGB(255, 255, 255),
-        Surface          = Color3.fromRGB(248, 248, 252),
-        SurfaceAlt       = Color3.fromRGB(240, 241, 247),
-        Border           = Color3.fromRGB(215, 218, 230),
-        Accent           = Color3.fromRGB(70,  110, 230),
-        AccentHover      = Color3.fromRGB(50,  90,  210),
-        TextPrimary      = Color3.fromRGB(20,  22,  40),
-        TextSecondary    = Color3.fromRGB(140, 145, 170),
-        TextAccent       = Color3.fromRGB(60,  100, 220),
-        Success          = Color3.fromRGB(34,  139, 54),
-        Danger           = Color3.fromRGB(210, 35,  35),
-        Warning          = Color3.fromRGB(220, 135, 0),
-        ToggleOff        = Color3.fromRGB(215, 218, 230),
+        Surface          = Color3.fromRGB(252, 252, 255),
+        SurfaceAlt       = Color3.fromRGB(242, 243, 248),
+        Border           = Color3.fromRGB(18,  18,  28),
+        Accent           = Color3.fromRGB(60,  100, 220),
+        AccentHover      = Color3.fromRGB(40,  80,  200),
+        TextPrimary      = Color3.fromRGB(12,  14,  30),
+        TextSecondary    = Color3.fromRGB(75,  80,  110),
+        TextAccent       = Color3.fromRGB(50,  90,  210),
+        Success          = Color3.fromRGB(30,  130, 50),
+        Danger           = Color3.fromRGB(200, 30,  30),
+        Warning          = Color3.fromRGB(180, 110, 0),
+        ToggleOff        = Color3.fromRGB(200, 203, 220),
         ToggleKnob       = Color3.fromRGB(255, 255, 255),
-        SliderFill       = Color3.fromRGB(70,  110, 230),
-        SliderTrack      = Color3.fromRGB(215, 218, 230),
-        TitleBar         = Color3.fromRGB(235, 237, 245),
-        TabBar           = Color3.fromRGB(245, 246, 250),
-        TabActive        = Color3.fromRGB(70,  110, 230),
-        Scrollbar        = Color3.fromRGB(200, 203, 218),
+        SliderFill       = Color3.fromRGB(60,  100, 220),
+        SliderTrack      = Color3.fromRGB(200, 203, 220),
+        TitleBar         = Color3.fromRGB(245, 246, 252),
+        TabBar           = Color3.fromRGB(248, 249, 254),
+        TabActive        = Color3.fromRGB(60,  100, 220),
+        Scrollbar        = Color3.fromRGB(160, 165, 195),
     },
 }
 
@@ -229,7 +229,7 @@ function NexusUI:Notify(opts)
     local duration = opts.Duration or 4
 
     EnsureNotifHolder()
-    local T = NexusUI.Themes.DarkNavy
+    local T = NexusUI._activeTheme or NexusUI.Themes.DarkNavy
 
     local accentColor = ({
         Info    = T.Accent,
@@ -345,6 +345,7 @@ function NexusUI:CreateWindow(opts)
     local subtitle = opts.SubTitle or "v1.0"
     local themeName= opts.Theme    or "DarkNavy"
     local T        = self.Themes[themeName] or self.Themes.DarkNavy
+    NexusUI._activeTheme = T
 
     local function _alreadyLoaded()
         SendAlreadyLoadedNotice()
@@ -448,7 +449,7 @@ function NexusUI:CreateWindow(opts)
         Parent           = sg,
     })
     Create("UICorner",  { CornerRadius = UDim.new(0, 12), Parent = main })
-    Create("UIStroke",  { Color = Color3.fromRGB(18, 18, 28), Thickness = 1.5, Parent = main })
+    Create("UIStroke",  { Color = T.Border, Thickness = 1.5, Parent = main })
 
     local titleBar = Create("Frame", {
         Name             = "TitleBar",
@@ -466,7 +467,7 @@ function NexusUI:CreateWindow(opts)
         Parent           = titleBar,
     })
     Create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(18, 18, 28),
+        BackgroundColor3 = T.Border,
         BorderSizePixel  = 0,
         Size             = UDim2.new(1, 0, 0, 1),
         Position         = UDim2.new(0, 0, 1, -1),
@@ -489,7 +490,7 @@ function NexusUI:CreateWindow(opts)
         Size             = UDim2.new(1, -120, 0, 20),
         Position         = UDim2.new(0, 24, 0, 7),
         Text             = title,
-        TextColor3       = Color3.fromRGB(235, 238, 255),
+        TextColor3       = T.TextPrimary,
         TextSize         = 13,
         Font             = Enum.Font.GothamBold,
         TextXAlignment   = Enum.TextXAlignment.Left,
@@ -501,7 +502,7 @@ function NexusUI:CreateWindow(opts)
         Size             = UDim2.new(1, -120, 0, 14),
         Position         = UDim2.new(0, 24, 0, 28),
         Text             = subtitle,
-        TextColor3       = Color3.fromRGB(45, 50, 80),
+        TextColor3       = T.TextSecondary,
         TextSize         = 9,
         Font             = Enum.Font.Gotham,
         TextXAlignment   = Enum.TextXAlignment.Left,
@@ -541,12 +542,12 @@ function NexusUI:CreateWindow(opts)
 
     local collapsedBtn = Create("TextButton", {
         Name             = "CollapsedToggle",
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundColor3 = T.Surface,
         BorderSizePixel  = 0,
         Size             = UDim2.new(0, 92, 0, 46),
         Position         = UDim2.new(0.5, -46, 0, 30),
         Text             = "Nexus",
-        TextColor3       = Color3.fromRGB(255, 255, 255),
+        TextColor3       = T.TextPrimary,
         TextSize         = 14,
         Font             = Enum.Font.GothamBold,
         Visible          = false,
@@ -864,13 +865,13 @@ function NexusUI:CreateWindow(opts)
 
             tabBtn = Create("TextButton", {
                 Name                   = "Tab_"..name,
-                BackgroundColor3       = Color3.fromRGB(12, 13, 20),
+                BackgroundColor3       = T.SurfaceAlt,
                 BackgroundTransparency = 0,
                 BorderSizePixel        = 0,
                 LayoutOrder            = layoutOrder,
                 Size                   = UDim2.new(1, 0, 1, 0),
                 Text                   = name,
-                TextColor3             = Color3.fromRGB(108, 120, 175),
+                TextColor3             = T.TextSecondary,
                 TextScaled             = true,
                 Font                   = Enum.Font.GothamSemibold,
                 TextXAlignment         = Enum.TextXAlignment.Center,
@@ -879,7 +880,7 @@ function NexusUI:CreateWindow(opts)
             Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = tabBtn })
             Create("UITextSizeConstraint", { MinTextSize = 7, MaxTextSize = 12, Parent = tabBtn })
             tabHover = Create("Frame", {
-                BackgroundColor3       = Color3.fromRGB(18, 20, 32),
+                BackgroundColor3       = T.Surface,
                 BackgroundTransparency = 1,
                 BorderSizePixel        = 0,
                 Size                   = UDim2.new(1, 0, 1, 0),
@@ -888,14 +889,14 @@ function NexusUI:CreateWindow(opts)
             Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = tabHover })
             tabBtn.MouseEnter:Connect(function()
                 if Window._activeTab ~= Tab then
-                    Tween(tabBtn,   { TextColor3 = Color3.fromRGB(165, 178, 230) }, 0.12)
+                    Tween(tabBtn,   { TextColor3 = T.TextAccent }, 0.12)
                     Tween(tabHover, { BackgroundTransparency = 0 }, 0.12)
                 end
             end)
             tabBtn.MouseLeave:Connect(function()
                 Tween(tabHover, { BackgroundTransparency = 1 }, 0.12)
                 if Window._activeTab ~= Tab then
-                    Tween(tabBtn, { TextColor3 = Color3.fromRGB(108, 120, 175) }, 0.12)
+                    Tween(tabBtn, { TextColor3 = T.TextSecondary }, 0.12)
                 end
             end)
             tabLabel = tabBtn
@@ -917,7 +918,7 @@ function NexusUI:CreateWindow(opts)
         local function ActivateTab()
             for _, t in ipairs(Window._tabs) do
                 pcall(function()
-                    Tween(t._tabLabel, { TextColor3 = Color3.fromRGB(108, 120, 175) }, 0.15)
+                    Tween(t._tabLabel, { TextColor3 = T.TextSecondary }, 0.15)
                     t._tabLabel.Font = Enum.Font.GothamSemibold
                     Tween(t._tabIndicator, { Size = UDim2.new(0, 0, 0, 2), BackgroundTransparency = 1 }, 0.15)
                     if t._tabHover then
@@ -927,7 +928,7 @@ function NexusUI:CreateWindow(opts)
                 end)
             end
             if tabBtn then
-                Tween(tabBtn, { TextColor3 = Color3.fromRGB(145, 175, 255) }, 0.15)
+                Tween(tabBtn, { TextColor3 = T.Accent }, 0.15)
                 tabBtn.Font = Enum.Font.GothamBold
                 Tween(tabIndicator, { Size = UDim2.new(0.65, 0, 0, 2), BackgroundTransparency = 0 }, 0.18)
             end
@@ -972,14 +973,14 @@ function NexusUI:CreateWindow(opts)
                 Size             = UDim2.new(1, -6, 1, 0),
                 Position         = UDim2.new(0, 8, 0, 0),
                 Text             = string.upper(text),
-                TextColor3       = Color3.fromRGB(55, 65, 110),
+                TextColor3       = T.TextSecondary,
                 TextSize         = 9,
                 Font             = Enum.Font.GothamBold,
                 TextXAlignment   = Enum.TextXAlignment.Left,
                 Parent           = f,
             })
             Create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(14, 15, 24),
+                BackgroundColor3 = T.Border,
                 BorderSizePixel  = 0,
                 Size             = UDim2.new(1, 0, 0, 1),
                 Position         = UDim2.new(0, 0, 1, -1),
@@ -1006,7 +1007,7 @@ function NexusUI:CreateWindow(opts)
                 Size             = UDim2.new(0.55, 0, 0, 18),
                 Position         = UDim2.new(0, offsetX, 0, 8),
                 Text             = name,
-                TextColor3       = Color3.fromRGB(200, 208, 240),
+                TextColor3       = T.TextPrimary,
                 TextSize         = 12,
                 Font             = Enum.Font.GothamSemibold,
                 TextXAlignment   = Enum.TextXAlignment.Left,
@@ -1225,9 +1226,9 @@ function NexusUI:CreateWindow(opts)
             local el = BaseElement(46)
             NameDesc(el, name, desc)
 
-            local BTN_DARK = Color3.fromRGB(20, 22, 32)
-            local BTN_HOVER = Color3.fromRGB(28, 32, 48)
-            local BTN_PRESS = Color3.fromRGB(14, 16, 24)
+            local BTN_DARK  = T.Surface
+            local BTN_HOVER = T.SurfaceAlt
+            local BTN_PRESS = T.Background
 
             local btn = Create("TextButton", {
                 BackgroundColor3 = BTN_DARK,
@@ -1241,7 +1242,7 @@ function NexusUI:CreateWindow(opts)
                 Parent           = el,
             })
             Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = btn })
-            Create("UIStroke",  { Color = Color3.fromRGB(35, 38, 58), Thickness = 1, Parent = btn })
+            Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = btn })
             Create("UITextSizeConstraint", { MinTextSize = 8, MaxTextSize = 12, Parent = btn })
             Create("UIPadding", {
                 PaddingLeft  = UDim.new(0, 6),
@@ -1250,7 +1251,7 @@ function NexusUI:CreateWindow(opts)
             })
 
             btn.MouseEnter:Connect(function()
-                Tween(btn, { BackgroundColor3 = BTN_HOVER, TextColor3 = Color3.fromRGB(255,255,255) }, 0.12)
+                Tween(btn, { BackgroundColor3 = BTN_HOVER, TextColor3 = T.TextPrimary }, 0.12)
             end)
             btn.MouseLeave:Connect(function()
                 Tween(btn, { BackgroundColor3 = BTN_DARK, TextColor3 = T.TextPrimary }, 0.12)
@@ -1576,7 +1577,7 @@ function NexusUI:CreateWindow(opts)
             local PICKER_H = 196
 
             local picker = Create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(6, 6, 10),
+                BackgroundColor3 = T.Surface,
                 BorderSizePixel  = 0,
                 Size             = UDim2.new(0, PICKER_W, 0, 0),
                 Position         = UDim2.new(0, 0, 0, 0),
@@ -1586,7 +1587,7 @@ function NexusUI:CreateWindow(opts)
                 Parent           = sg,
             })
             Create("UICorner", { CornerRadius = UDim.new(0, 9), Parent = picker })
-            Create("UIStroke",  { Color = Color3.fromRGB(30, 30, 50), Thickness = 1, Parent = picker })
+            Create("UIStroke",  { Color = T.Border, Thickness = 1, Parent = picker })
 
             local preview = Create("Frame", {
                 BackgroundColor3 = selected,
@@ -1630,7 +1631,7 @@ function NexusUI:CreateWindow(opts)
                     Size             = UDim2.new(1, -16, 0, 14),
                     Position         = UDim2.new(0, 8, 0, yPos),
                     Text             = text,
-                    TextColor3       = Color3.fromRGB(70, 80, 130),
+                    TextColor3       = T.TextSecondary,
                     TextSize         = 9,
                     Font             = Enum.Font.GothamBold,
                     TextXAlignment   = Enum.TextXAlignment.Left,
@@ -2253,7 +2254,7 @@ function NexusUI:CreateWindow(opts)
                 Size             = UDim2.new(1, -90, 1, 0),
                 Position         = UDim2.new(0, 12, 0, 0),
                 Text             = name,
-                TextColor3       = Color3.fromRGB(200, 208, 240),
+                TextColor3       = T.TextPrimary,
                 TextSize         = 12,
                 Font             = Enum.Font.GothamSemibold,
                 TextXAlignment   = Enum.TextXAlignment.Left,
@@ -2282,7 +2283,7 @@ function NexusUI:CreateWindow(opts)
             end)
 
             Create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(14, 15, 24),
+                BackgroundColor3 = T.Border,
                 BorderSizePixel  = 0,
                 Size             = UDim2.new(1, 0, 0, 1),
                 Position         = UDim2.new(0, 0, 1, -1),
@@ -2290,7 +2291,7 @@ function NexusUI:CreateWindow(opts)
             })
 
             local lineNumCol = Create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(6, 7, 11),
+                BackgroundColor3 = T.SurfaceAlt,
                 BorderSizePixel  = 0,
                 Size             = UDim2.new(0, NUM_W, 1, -HEADER_H),
                 Position         = UDim2.new(0, 0, 0, HEADER_H),
@@ -2298,7 +2299,7 @@ function NexusUI:CreateWindow(opts)
                 Parent           = container,
             })
             Create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(18, 20, 32),
+                BackgroundColor3 = T.Border,
                 BorderSizePixel  = 0,
                 Size             = UDim2.new(0, 1, 1, 0),
                 Position         = UDim2.new(1, -1, 0, 0),
@@ -2363,7 +2364,7 @@ function NexusUI:CreateWindow(opts)
                         BackgroundTransparency = 1,
                         Size             = UDim2.new(1, 0, 0, LINE_H),
                         Text             = tostring(i),
-                        TextColor3       = Color3.fromRGB(55, 65, 110),
+                        TextColor3       = T.TextSecondary,
                         TextSize         = 10,
                         Font             = Enum.Font.GothamBold,
                         TextXAlignment   = Enum.TextXAlignment.Center,
